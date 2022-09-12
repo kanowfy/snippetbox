@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
+	"github.com/kanowfy/snippetbox/pkg/forms"
 	"github.com/kanowfy/snippetbox/pkg/models"
 )
 
@@ -52,46 +51,25 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form := forms.New(r.PostForm)
+	form.Required("title", "content", "expires")
+	form.MaxLength("title", 100)
+	form.PermittedValues("expires", "365", "7", "1")
 
-
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-	expires := r.PostForm.Get("expires")
-	// map to hold validation errors
-	errors := make(map[string]string) 
-
-	if strings.TrimSpace(title) == ""{
-		errors["title"] = "this field can not be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		errors["title"] = "this field is too long (can not exceed 100 characters)"
-	}
-
-	if strings.TrimSpace(content) == "" {
-		errors["content"] = "this field can not be blank"
-	}
-
-	if strings.TrimSpace(expires) == "" {
-		errors["expires"] = "this field can not be blank"
-	} else if expires != "365" && expires != "7" && expires != "1" {
-		errors["expires"] = "this field is invalid"
-	}
-
-	// if any validation error, dump them in plain HTML response and return 
-	if len(errors) > 0 {
-		app.render(w, r, "create.page.tmpl", &templateData{
-			FormData: r.PostForm,
-			FormErrors: errors,
-		})
+	if !form.Valid() {
+		app.render(w, r, "create.page.tmpl", &templateData{Form: form})
 		return
 	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
 	if err != nil {
 		app.serverError(w, err)
 	}
 	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 
-func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request){
-	app.render(w, r, "create.page.tmpl", nil)
+func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, "create.page.tmpl", &templateData{
+		Form: forms.New(nil),
+	})
 }
