@@ -10,12 +10,14 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golangcollege/sessions"
 	"github.com/kanowfy/snippetbox/pkg/models/mysql"
 )
 
 type application struct {
 	infoLog       *log.Logger
 	errLog        *log.Logger
+	session       *sessions.Session
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
 }
@@ -23,6 +25,7 @@ type application struct {
 func main() {
 	addr := flag.String("addr", ":8080", "Network Address")
 	dsn := flag.String("dsn", "web:a@/snippetbox?parseTime=true", "MySQL Data Source Name")
+	secret := flag.String("secret", "s6Ndh+pPbnzHbS*+9Pk8qGWhTzbpa@ge", "Session secret")
 
 	flag.Parse()
 
@@ -41,9 +44,14 @@ func main() {
 		errLog.Println(err.Error())
 	}
 
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour
+	session.Secure = true
+
 	app := &application{
 		infoLog:       infoLog,
 		errLog:        errLog,
+		session:       session,
 		snippets:      &mysql.SnippetModel{DB: db},
 		templateCache: templateCache,
 	}
@@ -57,7 +65,7 @@ func main() {
 	}
 
 	app.infoLog.Printf("Listening on port %s", *addr)
-	app.errLog.Fatal(srv.ListenAndServe())
+	srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 }
 
 func openDB(dsn string) (*sql.DB, error) {

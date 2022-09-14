@@ -40,7 +40,13 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	data := &templateData{Snippet: snippet}
+	// Get data from the session if exists then remove it from the session right away
+	flash := app.session.PopString(r, "flash")
+
+	data := &templateData{
+		Snippet: snippet,
+		Flash:   flash,
+	}
 	app.render(w, r, "show.page.tmpl", data)
 }
 
@@ -65,6 +71,9 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverError(w, err)
 	}
+
+	// One time message to notify the user
+	app.session.Put(r, "flash", "Snippet succesfully created!")
 	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
 
