@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -56,12 +57,21 @@ func main() {
 		templateCache: templateCache,
 	}
 
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
+		MinVersion:               tls.VersionTLS11,
+		MaxVersion:               tls.VersionTLS13,
+	}
+
 	srv := &http.Server{
 		Handler:      app.routes(),
 		Addr:         *addr,
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
 		ErrorLog:     app.errLog,
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	app.infoLog.Printf("Listening on port %s", *addr)
