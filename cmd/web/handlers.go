@@ -82,3 +82,25 @@ func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request
 		Form: forms.New(nil),
 	})
 }
+
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (app *application) userSignupForm(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, "signup.page.tmpl", &templateData{
+		Form: forms.New(nil),
+	})
+}
+
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (app *application) userLoginForm(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (app *application) userLogout(w http.ResponseWriter, r *http.Request) {
+
+}
