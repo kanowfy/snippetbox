@@ -150,5 +150,7 @@ func (app *application) userLoginForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLogout(w http.ResponseWriter, r *http.Request) {
-
+	app.session.Remove(r, "userID")
+	app.session.Put(r, "flash", "You have logged out")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

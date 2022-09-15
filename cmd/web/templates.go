@@ -10,11 +10,13 @@ import (
 )
 
 type templateData struct {
-	Flash       string
-	Form        *forms.Form
-	Snippet     *models.Snippet
-	Snippets    []*models.Snippet
-	CurrentYear int
+	AuthenticatedUser int
+	CSRFToken         string
+	Flash             string
+	Form              *forms.Form
+	Snippet           *models.Snippet
+	Snippets          []*models.Snippet
+	CurrentYear       int
 }
 
 // Custom template function
